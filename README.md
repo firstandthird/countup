@@ -53,7 +53,6 @@ CountUp has a module that can be used in the DOM and that also plays nice with [
 <div data-module="Countup"
      data-module-target="20"
      data-module-template="$D%"></div>
-});
 ```
 
 See [examples](/example/index.html) for more usage examples.
