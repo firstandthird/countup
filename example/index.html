@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>CountUp Demo</title>
+  <link href="http://clientkit.io/clientkit.css" rel="stylesheet">
+</head>
+<body>
+<div class="container padding-yaxis-md text-center">
+  <div class="row">
+    <div class="col-2">
+      <h2 class="heading-4 spacing-sm">Normal</h2>
+      <div data-module="Countup" data-module-target="20" data-scroll></div>
+    </div>
+
+    <div class="col-2">
+      <h2 class="heading-4 spacing-sm">Different start</h2>
+      <div data-module="Countup" data-module-target="20" data-module-start="50" data-scroll></div>
+    </div>
+
+    <div class="col-2">
+      <h2 class="heading-4 spacing-sm">Slower</h2>
+      <div data-module="Countup" data-module-target="20" data-module-duration="2000" data-scroll></div>
+    </div>
+
+    <div class="col-2">
+      <h2 class="heading-4 spacing-sm">Delay</h2>
+      <div data-module="Countup" data-module-target="20" data-module-delay="1000" data-scroll></div>
+    </div>
+
+    <div class="col-2">
+      <h2 class="heading-4 spacing-sm">Template</h2>
+      <div data-module="Countup" data-module-target="20" data-module-template="Template: $D%" data-scroll></div>
+    </div>
+  </div>
+</div>
+
+<script src="../dist/countup.js"></script>
+<script src="../node_modules/domassist/dist/domassist.js"></script>
+<script>
+  (function() {
+    const modules = document.querySelectorAll('[data-module="Countup"]');
+
+    setTimeout(() => {
+      for (let module of modules) {
+        Domassist.fire(module, 'scrolltriggers:inView');
+      }
+    }, 2000);
+  })();
+</script>
+</body>
+</html>
