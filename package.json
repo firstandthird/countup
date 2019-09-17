@@ -2,13 +2,15 @@
   "name": "@firstandthird/countup",
   "version": "1.0.0",
   "description": "Easily animate numbers",
-  "main": "dist/countup.js",
-  "module": "index.js",
+  "main": "index.js",
+  "module": "dist/countup.js",
   "scripts": {
     "start": "scriptkit",
+    "build": "scriptkit build",
     "dev": "scriptkit dev",
-    "test": "cat test/countup.test.dist.js | tape-run --static . --browser phantomjs --render tap-spec",
-    "prepublishonly": "scriptkit"
+    "test": "cat test/countup.test.dist.bundle.js | tape-run --static . --browser phantomjs --render tap-spec",
+    "pretest": "scriptkit build",
+    "prepublishOnly": "scriptkit"
   },
   "repository": {
     "type": "git",
@@ -25,15 +27,19 @@
     "url": "https://github.com/firstandthird/countup/issues"
   },
   "homepage": "https://github.com/firstandthird/countup#readme",
+  "dependencies": {
+    "domassist": "^2.2.0",
+    "domodule": "^6.1.0"
+  },
   "devDependencies": {
-    "eslint-config-firstandthird": "4.3.0",
-    "eslint-plugin-compat": "^2.2.0",
-    "eslint-plugin-import": "^2.10.0",
+    "eslint-config-firstandthird": "4.4.0",
+    "eslint-plugin-compat": "^3.3.0",
+    "eslint-plugin-import": "^2.18.2",
     "phantomjs-prebuilt": "^2.1.16",
-    "scriptkit": "0.3.0",
-    "tap-spec": "^4.1.1",
+    "scriptkit": "3.0.0",
+    "tap-spec": "^5.0.0",
     "tape-rollup": "4.6.4",
-    "tape-run": "4.0.0"
+    "tape-run": "6.0.1"
   },
   "eslintConfig": {
     "env": {
@@ -48,6 +54,9 @@
     }
   },
   "scriptkit": {
+    "serve": {
+      "enabled": true
+    },
     "files": {
       "dist/countup.js": "index.js",
       "test/countup.test.dist.js": "test/countup.test.js"
@@ -59,9 +68,5 @@
         ]
       }
     }
-  },
-  "dependencies": {
-    "domassist": "^1.10.0",
-    "domodule": "^5.1.3"
   }
 }
