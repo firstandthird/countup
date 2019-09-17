@@ -1,4 +1,4 @@
-# CountUp
+# CountUp ![npm](https://img.shields.io/npm/v/@firstandthird/countup.svg)
 
 Easily animate numbers.
 
@@ -22,8 +22,7 @@ This function takes an object with the following keys:
 | `callback`  | `Function` | Noop Function | Function to be called once the animation finishes.                   |
 | `interval`  | `Function` | N/A           | Function to be called with every interval. Useful to update the DOM. |
 
-
-#### Example:
+#### Example
 
 ```js
 import { animateNumber } from '@firstandthird/countup';
@@ -47,9 +46,9 @@ CountUp has a module that can be used in the DOM and that also plays nice with [
 | `duration` | N/A                       | The amount of ms the animation should take.                                                                                            |
 | `template` | `'$D'`                    | Template to be used to format the number. `$D` will be replaced with the number. You could use `$D%` to animate a percent for example. |
 
-#### Example:
+#### Example
 
-```markup
+```html
 <div data-module="Countup"
      data-module-target="20"
      data-module-template="$D%"></div>

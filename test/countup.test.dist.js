@@ -1,776 +1,42 @@
-(function () {
-'use strict';
-
-function findParent$1(elem) {
-  if (elem.parentNode) {
-    // Accounting for https://bugs.webkit.org/show_bug.cgi?id=161454
-    var dataset = JSON.parse(JSON.stringify(elem.parentNode.dataset));
-
-    if (dataset.module) {
-      return elem.parentNode;
-    }
-
-    return findParent$1(elem.parentNode);
-  }
-
-  return elem;
-}
-
-/* global window */
-
-var attrObj = function (key, el) {
-  var values = {};
-
-  Object.keys(el.dataset).forEach(function (data) {
-    if (data.match(new RegExp('^' + key)) && data !== key) {
-      var optionName = data.replace(key, '');
-      var isGlobal = false;
-
-      if (optionName.match(/^Global/)) {
-        optionName = optionName.replace('Global', '');
-        isGlobal = true;
-      }
-
-      optionName = '' + optionName[0].toLowerCase() + optionName.slice(1);
-
-      if (isGlobal) {
-        values[optionName] = window[el.dataset[data]];
-      } else {
-        values[optionName] = el.dataset[data];
-      }
-    }
-  });
-
-  return values;
-};
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
-  return typeof obj;
-} : function (obj) {
-  return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-};
-
-
-
-
-
-var asyncGenerator = function () {
-  function AwaitValue(value) {
-    this.value = value;
-  }
-
-  function AsyncGenerator(gen) {
-    var front, back;
-
-    function send(key, arg) {
-      return new Promise(function (resolve, reject) {
-        var request = {
-          key: key,
-          arg: arg,
-          resolve: resolve,
-          reject: reject,
-          next: null
-        };
-
-        if (back) {
-          back = back.next = request;
-        } else {
-          front = back = request;
-          resume(key, arg);
-        }
-      });
-    }
-
-    function resume(key, arg) {
-      try {
-        var result = gen[key](arg);
-        var value = result.value;
-
-        if (value instanceof AwaitValue) {
-          Promise.resolve(value.value).then(function (arg) {
-            resume("next", arg);
-          }, function (arg) {
-            resume("throw", arg);
-          });
-        } else {
-          settle(result.done ? "return" : "normal", result.value);
-        }
-      } catch (err) {
-        settle("throw", err);
-      }
-    }
-
-    function settle(type, value) {
-      switch (type) {
-        case "return":
-          front.resolve({
-            value: value,
-            done: true
-          });
-          break;
-
-        case "throw":
-          front.reject(value);
-          break;
-
-        default:
-          front.resolve({
-            value: value,
-            done: false
-          });
-          break;
-      }
-
-      front = front.next;
-
-      if (front) {
-        resume(front.key, front.arg);
-      } else {
-        back = null;
-      }
-    }
-
-    this._invoke = send;
-
-    if (typeof gen.return !== "function") {
-      this.return = undefined;
-    }
-  }
-
-  if (typeof Symbol === "function" && Symbol.asyncIterator) {
-    AsyncGenerator.prototype[Symbol.asyncIterator] = function () {
-      return this;
-    };
-  }
-
-  AsyncGenerator.prototype.next = function (arg) {
-    return this._invoke("next", arg);
-  };
-
-  AsyncGenerator.prototype.throw = function (arg) {
-    return this._invoke("throw", arg);
-  };
-
-  AsyncGenerator.prototype.return = function (arg) {
-    return this._invoke("return", arg);
-  };
-
-  return {
-    wrap: function (fn) {
-      return function () {
-        return new AsyncGenerator(fn.apply(this, arguments));
-      };
-    },
-    await: function (value) {
-      return new AwaitValue(value);
-    }
-  };
-}();
-
-
-
-
-
-var classCallCheck = function (instance, Constructor) {
-  if (!(instance instanceof Constructor)) {
-    throw new TypeError("Cannot call a class as a function");
-  }
-};
-
-var createClass = function () {
-  function defineProperties(target, props) {
-    for (var i = 0; i < props.length; i++) {
-      var descriptor = props[i];
-      descriptor.enumerable = descriptor.enumerable || false;
-      descriptor.configurable = true;
-      if ("value" in descriptor) descriptor.writable = true;
-      Object.defineProperty(target, descriptor.key, descriptor);
-    }
-  }
-
-  return function (Constructor, protoProps, staticProps) {
-    if (protoProps) defineProperties(Constructor.prototype, protoProps);
-    if (staticProps) defineProperties(Constructor, staticProps);
-    return Constructor;
-  };
-}();
-
-
-
-
-
-
-
-
-
-var inherits = function (subClass, superClass) {
-  if (typeof superClass !== "function" && superClass !== null) {
-    throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
-  }
-
-  subClass.prototype = Object.create(superClass && superClass.prototype, {
-    constructor: {
-      value: subClass,
-      enumerable: false,
-      writable: true,
-      configurable: true
-    }
-  });
-  if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-};
-
-
-
-
-
-
-
-
-
-
-
-var possibleConstructorReturn = function (self, call) {
-  if (!self) {
-    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-  }
-
-  return call && (typeof call === "object" || typeof call === "function") ? call : self;
-};
-
-'use strict';
-
-var aug = function aug() {
-  var args = Array.prototype.slice.call(arguments); //eslint-disable-line prefer-rest-params
-  var org = args.shift();
-  var type = '';
-  if (typeof org === 'string' || typeof org === 'boolean') {
-    type = org === true ? 'deep' : org;
-    org = args.shift();
-    if (type === 'defaults') {
-      org = aug({}, org); //clone defaults into new object
-      type = 'strict';
-    }
-  }
-  args.forEach(function (prop) {
-    for (var propName in prop) {
-      //eslint-disable-line
-      var propValue = prop[propName];
-      // just overwrite arrays:
-      if (Array.isArray(propValue)) {
-        org[propName] = propValue;
-        continue;
-      }
-      if (type === 'deep' && (typeof propValue === 'undefined' ? 'undefined' : _typeof(propValue)) === 'object' && typeof org[propName] !== 'undefined') {
-        if (_typeof(org[propName]) !== 'object') {
-          org[propName] = propValue;
-          continue;
-        }
-        aug(type, org[propName], propValue);
-      } else if (type !== 'strict' || type === 'strict' && typeof org[propName] !== 'undefined') {
-        org[propName] = propValue;
-      }
-    }
-  });
-  return org;
-};
-var aug_1 = aug;
-
-function findOne(selector, el) {
-  var found = find(selector, el);
-
-  if (found.length) {
-    return found[0];
-  }
-
-  return null;
-}
-
-function isWindow(obj) {
-  return obj != null && obj === obj.window;
-}
-
-function find(selector) {
-  var context = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
-
-  if (selector instanceof HTMLElement || selector instanceof Node || isWindow(selector)) {
-    return [selector];
-  } else if (selector instanceof NodeList) {
-    return [].slice.call(selector);
-  } else if (typeof selector === 'string') {
-    var startElement = context ? findOne(context) : document;
-    return [].slice.call(startElement.querySelectorAll(selector));
-  }
-  return [];
-}
-
-function on(selector, event, cb) {
-  var capture = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
-
-  if (Array.isArray(selector)) {
-    selector.forEach(function (item) {
-      return on(item, event, cb, capture);
-    });
-    return;
-  }
-
-  var data = {
-    cb: cb,
-    capture: capture
-  };
-
-  if (!window._domassistevents) {
-    window._domassistevents = {};
-  }
-
-  window._domassistevents['_' + event] = data;
-  var el = find(selector);
-  if (el.length) {
-    el.forEach(function (item) {
-      item.addEventListener(event, cb, capture);
-    });
+import Domodule from 'domodule';
+import { once, fire } from 'domassist';
+
+function _defineProperties(target, props) {
+  for (var i = 0; i < props.length; i++) {
+    var descriptor = props[i];
+    descriptor.enumerable = descriptor.enumerable || false;
+    descriptor.configurable = true;
+    if ("value" in descriptor) descriptor.writable = true;
+    Object.defineProperty(target, descriptor.key, descriptor);
   }
 }
 
-var NativeCustomEvent = window.CustomEvent;
-
-//
-// Check for the usage of native support for CustomEvents which is lacking
-// completely on IE.
-//
-function canIuseNativeCustom() {
-  try {
-    var p = new NativeCustomEvent('t', {
-      detail: {
-        a: 'b'
-      }
-    });
-    return p.type === 't' && p.detail.a === 'b';
-  } catch (e) {
-    return false;
-  }
+function _createClass(Constructor, protoProps, staticProps) {
+  if (protoProps) _defineProperties(Constructor.prototype, protoProps);
+  if (staticProps) _defineProperties(Constructor, staticProps);
+  return Constructor;
 }
 
-// Lousy polyfill for the Custom Event constructor for IE.
-var IECustomEvent = function CustomEvent(type, params) {
-  var e = document.createEvent('CustomEvent');
-
-  if (params) {
-    e.initCustomEvent(type, params.bubbles, params.cancelable, params.detail);
-  } else {
-    e.initCustomEvent(type, false, false, undefined);
-  }
-
-  return e;
-};
-
-var DomassistCustomEvent = canIuseNativeCustom() ? NativeCustomEvent : IECustomEvent;
-
-function fire(selector, type, params) {
-  if (Array.isArray(selector)) {
-    return selector.forEach(function (item) {
-      return fire(item, type, params);
-    });
-  }
-  var els = find(selector);
-
-  if (els.length) {
-    els.forEach(function (el) {
-      var event = new DomassistCustomEvent(type, params);
-      el.dispatchEvent(event);
-    });
-
-    return els;
-  }
+function _inheritsLoose(subClass, superClass) {
+  subClass.prototype = Object.create(superClass.prototype);
+  subClass.prototype.constructor = subClass;
+  subClass.__proto__ = superClass;
 }
-
-function off(selector, event) {
-  if (Array.isArray(selector)) {
-    selector.forEach(function (item) {
-      return off(item, event);
-    });
-  }
-  if (!window._domassistevents) {
-    window._domassistevents = {};
-  }
-
-  var data = window._domassistevents['_' + event];
-
-  if (!data) {
-    return;
-  }
-  var el = find(selector);
-  if (el.length) {
-    el.forEach(function (item) {
-      item.removeEventListener(event, data.cb, data.capture);
-    });
-  }
-}
-
-function once(el, event, run) {
-  var capture = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
-
-  on(el, event, function (e) {
-    off(el, event);
-    run(e);
-  }, capture);
-}
-
-var SCROLLABLE_CONTAINER = void 0;
-
-function getScrollableContainer() {
-  if (SCROLLABLE_CONTAINER) {
-    return SCROLLABLE_CONTAINER;
-  }
-
-  var documentElement = window.document.documentElement;
-  var scrollableContainer = void 0;
-
-  documentElement.scrollTop = 1;
-
-  if (documentElement.scrollTop === 1) {
-    documentElement.scrollTop = 0;
-    scrollableContainer = documentElement;
-  } else {
-    scrollableContainer = document.body;
-  }
-
-  SCROLLABLE_CONTAINER = scrollableContainer;
-
-  return scrollableContainer;
-}
-
-SCROLLABLE_CONTAINER = getScrollableContainer();
-
-/* global DocumentTouch */
-
-/* eslint no-new:0 */
-
-var ACTION_SELECTOR = '[data-action]';
-var DOMAssist = { find: find, findOne: findOne, on: on };
-
-var Domodule = function () {
-  function Domodule(el) {
-    classCallCheck(this, Domodule);
-
-    this.log('begin setup');
-    this.el = el;
-    this.els = {};
-    this.options = aug_1({}, this.defaults, attrObj('module', this.el));
-    this.moduleName = this.el.dataset.module;
-    this.setUps = {
-      actions: [],
-      named: [],
-      options: []
-    };
-    this.boundActionRouter = this.actionRouter.bind(this);
-
-    this.preInit();
-    this.storeRef();
-    this.setupActions();
-    this.setupNamed();
-    this.verifyRequired();
-    this.postInit();
-    this.log('initalized');
-
-    return this;
-  }
-
-  createClass(Domodule, [{
-    key: 'preInit',
-    value: function preInit() {}
-  }, {
-    key: 'postInit',
-    value: function postInit() {}
-  }, {
-    key: 'verifyRequired',
-    value: function verifyRequired() {
-      var _this = this;
-
-      if (this.required === {}) {
-        return this;
-      }
-
-      if (typeof this.required.options !== 'undefined') {
-        this.setUps.options = Object.keys(this.options);
-      }
-
-      Object.keys(this.required).forEach(function (required) {
-        _this.required[required].forEach(function (value) {
-          if (_this.setUps[required].indexOf(value) < 0) {
-            throw new Error(value + ' is required as ' + required + ' for ' + _this.moduleName + ', but is missing!');
-          }
-        });
-      });
-
-      return this;
-    }
-  }, {
-    key: 'setupActions',
-    value: function setupActions() {
-      var _this2 = this;
-
-      this.setupAction(this.el);
-
-      this.find(ACTION_SELECTOR).forEach(function (action) {
-        var parent = findParent$1(action);
-
-        if (parent === _this2.el) {
-          _this2.setupAction(action);
-        }
-      });
-    }
-  }, {
-    key: 'setupAction',
-    value: function setupAction(actionEl) {
-      if (actionEl.dataset.domoduleActionProcessed) {
-        return;
-      }
-
-      var _Domodule$parseAction = Domodule.parseAction(actionEl),
-          actionName = _Domodule$parseAction.name,
-          actionType = _Domodule$parseAction.type;
-
-      if (!actionName) {
-        return;
-      } else if (typeof this[actionName] !== 'function') {
-        this.log(actionName + ' was registered, but there is no function set up');
-        return;
-      }
-
-      this.log(actionName + ' bound');
-      this.storeSetUp(actionName, 'actions');
-
-      DOMAssist.on(actionEl, actionType, this.boundActionRouter);
-
-      actionEl.dataset.domoduleActionProcessed = true;
-    }
-  }, {
-    key: 'actionRouter',
-    value: function actionRouter(event) {
-      var actionEl = event.currentTarget;
-
-      var _Domodule$parseAction2 = Domodule.parseAction(actionEl),
-          actionName = _Domodule$parseAction2.name;
-
-      var actionData = attrObj('action', actionEl);
-
-      this[actionName].call(this, actionEl, event, actionData);
-    }
-  }, {
-    key: 'setupNamed',
-    value: function setupNamed() {
-      var _this3 = this;
-
-      this.find('[data-name]').forEach(function (named) {
-        var parent = findParent$1(named);
-
-        if (parent !== _this3.el) {
-          return;
-        }
-
-        if (!named.dataset.domoduleNameProcessed) {
-          _this3.els[named.dataset.name] = named;
-
-          _this3.storeSetUp(named.dataset.name, 'named');
-          named.dataset.domoduleNameProcessed = true;
-          named.dataset.domoduleOwner = _this3.id;
-        }
-      });
-    }
-  }, {
-    key: 'storeRef',
-    value: function storeRef() {
-      if (typeof Domodule.refs === 'undefined') {
-        Domodule.refs = {};
-      }
-
-      if (typeof Domodule.refs[this.el.dataset.moduleUid] !== 'undefined') {
-        return false;
-      }
-
-      this.id = this.uuid;
-      this.el.dataset.moduleUid = this.id;
-      Domodule.refs[this.el.dataset.moduleUid] = this;
-    }
-  }, {
-    key: 'find',
-    value: function find(selector) {
-      return DOMAssist.find(selector, this.el);
-    }
-  }, {
-    key: 'findOne',
-    value: function findOne(selector) {
-      return DOMAssist.findOne(selector, this.el);
-    }
-  }, {
-    key: 'findByName',
-    value: function findByName(name) {
-      return this.els[name];
-    }
-  }, {
-    key: 'getOption',
-    value: function getOption(option) {
-      return this.options[option];
-    }
-  }, {
-    key: 'storeSetUp',
-    value: function storeSetUp(name, dict) {
-      if (this.setUps[dict].indexOf(name) < 0) {
-        this.setUps[dict].push(name);
-      }
-    }
-  }, {
-    key: 'destroy',
-    value: function destroy() {
-      var _this4 = this;
-
-      DOMAssist.find(ACTION_SELECTOR, this.el.parentNode).forEach(function (el) {
-        if (el.dataset.domoduleActionProcessed) {
-          var _Domodule$parseAction3 = Domodule.parseAction(el),
-              actionType = _Domodule$parseAction3.type;
-
-          el.removeEventListener(actionType, _this4.boundActionRouter);
-          el.dataset.domoduleActionProcessed = false;
-        }
-      });
-    }
-
-    // static methods can't access `this` so they go last
-
-  }, {
-    key: 'log',
-
-
-    //used inside instance
-    value: function log(msg) {
-      Domodule.log(this.constructor.name + ': ' + msg);
-    }
-  }, {
-    key: 'required',
-    get: function get$$1() {
-      return {};
-    }
-  }, {
-    key: 'defaults',
-    get: function get$$1() {
-      return {};
-    }
-  }, {
-    key: 'uuid',
-    get: function get$$1() {
-      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-        var r = Math.random() * 16 | 0;
-        var v = c === 'x' ? r : r & 0x3 | 0x8;
-        return v.toString(16);
-      });
-    }
-  }], [{
-    key: 'parseAction',
-    value: function parseAction(el) {
-      var _el$dataset = el.dataset,
-          name = _el$dataset.action,
-          _el$dataset$actionTyp = _el$dataset.actionType,
-          type = _el$dataset$actionTyp === undefined ? 'click' : _el$dataset$actionTyp;
-
-      return { name: name, type: type };
-    }
-  }, {
-    key: 'getInstance',
-    value: function getInstance(element) {
-      if (element instanceof Node) {
-        return Domodule.refs[element.dataset.moduleUid];
-      }
-
-      throw new Error('getInstance expects a dom node');
-    }
-  }, {
-    key: 'register',
-    value: function register(name, cls) {
-      if (typeof name === 'function') {
-        cls = name;
-        name = cls.prototype.constructor.name;
-      }
-      if (!Domodule.modules) {
-        Domodule.modules = {};
-      }
-      Domodule.log('Registering ' + name);
-      Domodule.modules[name] = cls;
-    }
-  }, {
-    key: 'discover',
-    value: function discover() {
-      var el = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 'body';
-
-      Domodule.log('Discovering modules...');
-      if (!Domodule.modules) {
-        Domodule.log('No modules found');
-        return;
-      }
-      var els = void 0;
-
-      if (el instanceof Node) {
-        els = [el];
-      } else if (Array.isArray(el)) {
-        els = el;
-      } else {
-        els = DOMAssist.find(el);
-      }
-
-      var instances = [];
-      els.forEach(function (matched) {
-        var foundModules = DOMAssist.find('[data-module]', matched);
-
-        foundModules.forEach(function (moduleEl) {
-          var moduleName = moduleEl.dataset.module;
-
-          if (moduleName && typeof Domodule.modules[moduleName] === 'function') {
-            if (_typeof(Domodule.refs) === 'object' && typeof Domodule.refs[moduleEl.dataset.moduleUid] !== 'undefined') {
-              return;
-            }
-            Domodule.log(moduleName + ' found');
-            instances.push(new Domodule.modules[moduleName](moduleEl));
-          }
-        });
-      });
-      return instances;
-    }
-  }, {
-    key: 'log',
-    value: function log(msg) {
-      if (Domodule.debug) {
-        console.log('[DOMODULE] ' + msg); //eslint-disable-line no-console
-      }
-    }
-  }]);
-  return Domodule;
-}();
-
-Domodule.debug = _typeof(window.localStorage) === 'object' && window.localStorage.getItem('DomoduleDebug');
-
-Domodule.autoDiscover = true;
-window.addEventListener('DOMContentLoaded', function () {
-  if (Domodule.autoDiscover) {
-    Domodule.discover();
-  }
-});
 
 var MIN_TIMER = 50;
 
 function animateNumber(_ref) {
   var target = _ref.target,
       _ref$start = _ref.start,
-      start = _ref$start === undefined ? 0 : _ref$start,
+      start = _ref$start === void 0 ? 0 : _ref$start,
       duration = _ref.duration,
       _ref$callback = _ref.callback,
-      callback = _ref$callback === undefined ? function () {} : _ref$callback,
+      callback = _ref$callback === void 0 ? function () {} : _ref$callback,
       interval = _ref.interval;
-
   var range = target - start;
   var stepTime = Math.abs(Math.floor(duration / range));
+  stepTime = Math.max(stepTime, MIN_TIMER); // get current time and calculate desired end time
 
-  stepTime = Math.max(stepTime, MIN_TIMER);
-
-  // get current time and calculate desired end time
   var startTime = new Date().getTime();
   var endTime = startTime + duration;
 
@@ -778,7 +44,6 @@ function animateNumber(_ref) {
     var now = new Date().getTime();
     var remaining = Math.max((endTime - now) / duration, 0);
     var value = Math.round(target - remaining * range);
-
     interval(value.toLocaleString());
 
     if (value === target) {
@@ -792,69 +57,67 @@ function animateNumber(_ref) {
   }, stepTime);
 }
 
-var Countup = function (_Domodule) {
-  inherits(Countup, _Domodule);
+var Countup =
+/*#__PURE__*/
+function (_Domodule) {
+  _inheritsLoose(Countup, _Domodule);
 
   function Countup() {
-    classCallCheck(this, Countup);
-    return possibleConstructorReturn(this, (Countup.__proto__ || Object.getPrototypeOf(Countup)).apply(this, arguments));
+    return _Domodule.apply(this, arguments) || this;
   }
 
-  createClass(Countup, [{
-    key: 'postInit',
-    value: function postInit() {
-      var _this2 = this;
+  var _proto = Countup.prototype;
 
-      var numerics = ['delay', 'target', 'start', 'duration'];
-      this.reset();
+  _proto.postInit = function postInit() {
+    var _this = this;
 
-      numerics.forEach(function (option) {
-        _this2.options[option] = parseInt(_this2.options[option], 10);
+    var numerics = ['delay', 'target', 'start', 'duration'];
+    this.reset();
+    numerics.forEach(function (option) {
+      _this.options[option] = parseInt(_this.options[option], 10);
 
-        if (_this2.options[option] !== _this2.options[option]) {
-          throw new Error(option + ' value is not valid: ' + _this2.options[option]);
-        }
-      });
+      if (_this.options[option] !== _this.options[option]) {
+        throw new Error(option + " value is not valid: " + _this.options[option]);
+      }
+    });
 
-      if (this.el.hasAttribute('data-scroll')) {
-        var className = this.el.dataset.scrollClass;
+    if (this.el.hasAttribute('data-scroll')) {
+      var className = this.el.dataset.scrollClass;
 
-        if (this.el.classList.contains(className)) {
-          this.start();
-        } else {
-          once(this.el, 'scrolltriggers:inView', this.start.bind(this));
-        }
+      if (this.el.classList.contains(className)) {
+        this.start();
+      } else {
+        once(this.el, 'scrolltriggers:inView', this.start.bind(this));
       }
     }
-  }, {
-    key: 'reset',
-    value: function reset() {
-      this.el.innerHTML = this.getText(this.options.start);
-    }
-  }, {
-    key: 'start',
-    value: function start() {
-      var _this3 = this;
+  };
 
-      setTimeout(function () {
-        animateNumber({
-          target: _this3.options.target,
-          start: _this3.options.start,
-          duration: _this3.options.duration,
-          interval: function interval(value) {
-            _this3.el.innerHTML = _this3.getText(value);
-          }
-        });
-      }, this.options.delay);
-    }
-  }, {
-    key: 'getText',
-    value: function getText(number) {
-      return this.options.template.replace(/\$D/g, number);
-    }
-  }, {
-    key: 'defaults',
-    get: function get$$1() {
+  _proto.reset = function reset() {
+    this.el.innerHTML = this.getText(this.options.start);
+  };
+
+  _proto.start = function start() {
+    var _this2 = this;
+
+    setTimeout(function () {
+      animateNumber({
+        target: _this2.options.target,
+        start: _this2.options.start,
+        duration: _this2.options.duration,
+        interval: function interval(value) {
+          _this2.el.innerHTML = _this2.getText(value);
+        }
+      });
+    }, this.options.delay);
+  };
+
+  _proto.getText = function getText(number) {
+    return this.options.template.replace(/\$D/g, number);
+  };
+
+  _createClass(Countup, [{
+    key: "defaults",
+    get: function get() {
       return {
         delay: 0,
         start: 0,
@@ -863,13 +126,14 @@ var Countup = function (_Domodule) {
       };
     }
   }, {
-    key: 'required',
-    get: function get$$1() {
+    key: "required",
+    get: function get() {
       return {
         options: ['target']
       };
     }
   }]);
+
   return Countup;
 }(Domodule);
 
@@ -878,7 +142,6 @@ Domodule.register('Countup', Countup);
 var global$1 = typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {};
 
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f();}else if(typeof define==="function"&&define.amd){define([],f);}else{var g;if(typeof window!=="undefined"){g=window;}else if(typeof global$1!=="undefined"){g=global$1;}else if(typeof self!=="undefined"){g=self;}else{g=this;}g.test = f();}})(function(){return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r);}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-'use strict';
 
 exports.byteLength = byteLength;
 exports.toByteArray = toByteArray;
@@ -999,7 +262,6 @@ function fromByteArray (uint8) {
 arguments[4][2][0].apply(exports,arguments);
 },{"dup":2}],4:[function(require,module,exports){
 (function (global){
-'use strict';
 
 var buffer = require('buffer');
 var Buffer = buffer.Buffer;
@@ -1111,15 +373,6 @@ exports.allocUnsafeSlow = function allocUnsafeSlow(size) {
 }).call(this,typeof global$1 !== "undefined" ? global$1 : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {});
 },{"buffer":5}],5:[function(require,module,exports){
 (function (global){
-/*!
- * The buffer module from node.js, for the browser.
- *
- * @author   Feross Aboukhadijeh <feross@feross.org> <http://feross.org>
- * @license  MIT
- */
-/* eslint-disable no-proto */
-
-'use strict';
 
 var base64 = require('base64-js');
 var ieee754 = require('ieee754');
@@ -2611,7 +1864,7 @@ function checkIEEE754 (buf, value, offset, ext, max, min) {
 
 function writeFloat (buf, value, offset, littleEndian, noAssert) {
   if (!noAssert) {
-    checkIEEE754(buf, value, offset, 4, 3.4028234663852886e+38, -3.4028234663852886e+38);
+    checkIEEE754(buf, value, offset, 4);
   }
   ieee754.write(buf, value, offset, littleEndian, 23, 4);
   return offset + 4
@@ -2627,7 +1880,7 @@ Buffer.prototype.writeFloatBE = function writeFloatBE (value, offset, noAssert) 
 
 function writeDouble (buf, value, offset, littleEndian, noAssert) {
   if (!noAssert) {
-    checkIEEE754(buf, value, offset, 8, 1.7976931348623157E+308, -1.7976931348623157E+308);
+    checkIEEE754(buf, value, offset, 8);
   }
   ieee754.write(buf, value, offset, littleEndian, 52, 8);
   return offset + 8
@@ -3120,7 +2373,6 @@ exports.supported = supported;
 function supported(object) {
   return Object.prototype.toString.call(object) == '[object Arguments]';
 }
-
 exports.unsupported = unsupported;
 function unsupported(object){
   return object &&
@@ -3130,7 +2382,6 @@ function unsupported(object){
     !Object.prototype.propertyIsEnumerable.call(object, 'callee') ||
     false;
 }
-
 },{}],9:[function(require,module,exports){
 exports = module.exports = typeof Object.keys === 'function'
   ? Object.keys : shim;
@@ -3143,7 +2394,6 @@ function shim (obj) {
 }
 
 },{}],10:[function(require,module,exports){
-'use strict';
 
 var keys = require('object-keys');
 var foreach = require('foreach');
@@ -3208,7 +2458,6 @@ module.exports = function () {
 };
 
 },{}],12:[function(require,module,exports){
-'use strict';
 
 var $isNaN = require('./helpers/isNaN');
 var $isFinite = require('./helpers/isFinite');
@@ -3317,7 +2566,6 @@ module.exports = function sign(number) {
 };
 
 },{}],17:[function(require,module,exports){
-'use strict';
 
 var toStr = Object.prototype.toString;
 
@@ -3931,7 +3179,6 @@ function isSlowBuffer (obj) {
 }
 
 },{}],28:[function(require,module,exports){
-'use strict';
 
 var fnToStr = Function.prototype.toString;
 
@@ -3987,7 +3234,6 @@ function isFunction (fn) {
       fn === window.confirm ||
       fn === window.prompt))
 }
-
 },{}],30:[function(require,module,exports){
 var toString = {}.toString;
 
@@ -4205,7 +3451,6 @@ function inspectString (str) {
 }
 
 },{}],32:[function(require,module,exports){
-'use strict';
 
 // modified from https://github.com/es-shims/es5-shim
 var has = Object.prototype.hasOwnProperty;
@@ -4347,7 +3592,6 @@ keysShim.shim = function shimObjectKeys() {
 module.exports = keysShim;
 
 },{"./isArguments":33}],33:[function(require,module,exports){
-'use strict';
 
 var toStr = Object.prototype.toString;
 
@@ -4589,12 +3833,12 @@ var substr = 'ab'.substr(-1) === 'b'
     : function (str, start, len) {
         if (start < 0) start = str.length + start;
         return str.substr(start, len);
-    };
+    }
+;
 
 }).call(this,require('_process'));
 },{"_process":36}],35:[function(require,module,exports){
 (function (process){
-'use strict';
 
 if (!process.version ||
     process.version.indexOf('v0.') === 0 ||
@@ -4825,12 +4069,6 @@ process.umask = function() { return 0; };
 module.exports = require("./lib/_stream_duplex.js");
 
 },{"./lib/_stream_duplex.js":38}],38:[function(require,module,exports){
-// a duplex stream is just a stream that is both readable and writable.
-// Since JS doesn't have multiple prototypal inheritance, this class
-// prototypally inherits from Readable, and then parasitically from
-// Writable.
-
-'use strict';
 
 /*<replacement>*/
 
@@ -4894,14 +4132,7 @@ function onend() {
 function onEndNT(self) {
   self.end();
 }
-
-
 },{"./_stream_readable":40,"./_stream_writable":42,"core-util-is":6,"inherits":26,"process-nextick-args":35}],39:[function(require,module,exports){
-// a passthrough stream.
-// basically just the most minimal sort of Transform stream.
-// Every written chunk gets output as-is.
-
-'use strict';
 
 module.exports = PassThrough;
 
@@ -4925,7 +4156,6 @@ PassThrough.prototype._transform = function (chunk, encoding, cb) {
 };
 },{"./_stream_transform":41,"core-util-is":6,"inherits":26}],40:[function(require,module,exports){
 (function (process){
-'use strict';
 
 module.exports = Readable;
 
@@ -5604,7 +4834,7 @@ Readable.prototype.on = function (ev, fn) {
       if (!state.reading) {
         processNextTick(nReadingNextTick, this);
       } else if (state.length) {
-        emitReadable(this, state);
+        emitReadable(this);
       }
     }
   }
@@ -5868,49 +5098,6 @@ function indexOf(xs, x) {
 }
 }).call(this,require('_process'));
 },{"./_stream_duplex":38,"./internal/streams/BufferList":43,"_process":36,"buffer":5,"buffer-shims":4,"core-util-is":6,"events":19,"inherits":26,"isarray":30,"process-nextick-args":35,"string_decoder/":54,"util":2}],41:[function(require,module,exports){
-// a transform stream is a readable/writable stream where you do
-// something with the data.  Sometimes it's called a "filter",
-// but that's not a great name for it, since that implies a thing where
-// some bits pass through, and others are simply ignored.  (That would
-// be a valid example of a transform, of course.)
-//
-// While the output is causally related to the input, it's not a
-// necessarily symmetric or synchronous transformation.  For example,
-// a zlib stream might take multiple plain-text writes(), and then
-// emit a single compressed chunk some time in the future.
-//
-// Here's how this works:
-//
-// The Transform stream has all the aspects of the readable and writable
-// stream classes.  When you write(chunk), that calls _write(chunk,cb)
-// internally, and returns false if there's a lot of pending writes
-// buffered up.  When you call read(), that calls _read(n) until
-// there's enough pending readable data buffered up.
-//
-// In a transform stream, the written data is placed in a buffer.  When
-// _read(n) is called, it transforms the queued up data, calling the
-// buffered _write cb's as it consumes chunks.  If consuming a single
-// written chunk would result in multiple output chunks, then the first
-// outputted bit calls the readcb, and subsequent chunks just go into
-// the read buffer, and will cause it to emit 'readable' if necessary.
-//
-// This way, back-pressure is actually determined by the reading side,
-// since _read has to be called to start processing a new chunk.  However,
-// a pathological inflate type of transform can cause excessive buffering
-// here.  For example, imagine a stream where every byte of input is
-// interpreted as an integer from 0-255, and then results in that many
-// bytes of output.  Writing the 4 bytes {ff,ff,ff,ff} would result in
-// 1kb of data being output.  In this case, you could write a very small
-// amount of input, and end up with a very large amount of output.  In
-// such a pathological inflating mechanism, there'd be no way to tell
-// the system to stop doing the transform.  A single 4MB write could
-// cause the system to run out of memory.
-//
-// However, even in such a pathological case, only a single written chunk
-// would be consumed, and then the rest would wait (un-transformed) until
-// the results of the previous transformed chunk were consumed.
-
-'use strict';
 
 module.exports = Transform;
 
@@ -6052,11 +5239,6 @@ function done(stream, er, data) {
 }
 },{"./_stream_duplex":38,"core-util-is":6,"inherits":26}],42:[function(require,module,exports){
 (function (process){
-// A bit simpler than readable streams.
-// Implement an async ._write(chunk, encoding, cb), and it'll handle all
-// the drain event emission and buffering.
-
-'use strict';
 
 module.exports = Writable;
 
@@ -6608,7 +5790,6 @@ function CorkedRequest(state) {
 }
 }).call(this,require('_process'));
 },{"./_stream_duplex":38,"_process":36,"buffer":5,"buffer-shims":4,"core-util-is":6,"events":19,"inherits":26,"process-nextick-args":35,"util-deprecate":60}],43:[function(require,module,exports){
-'use strict';
 
 var Buffer = require('buffer').Buffer;
 /*<replacement>*/
@@ -6706,7 +5887,8 @@ module.exports = require("./lib/_stream_writable.js");
 var through = require('through');
 var nextTick = typeof setImmediate !== 'undefined'
     ? setImmediate
-    : process.nextTick;
+    : process.nextTick
+;
 
 module.exports = function (write, end) {
     var tr = through(write, end);
@@ -6863,7 +6045,6 @@ Stream.prototype.pipe = function(dest, options) {
 };
 
 },{"events":19,"inherits":26,"readable-stream/duplex.js":37,"readable-stream/passthrough.js":44,"readable-stream/readable.js":45,"readable-stream/transform.js":46,"readable-stream/writable.js":47}],50:[function(require,module,exports){
-'use strict';
 
 var bind = require('function-bind');
 var ES = require('es-abstract/es5');
@@ -6878,7 +6059,6 @@ module.exports = function trim() {
 };
 
 },{"es-abstract/es5":12,"function-bind":23}],51:[function(require,module,exports){
-'use strict';
 
 var bind = require('function-bind');
 var define = require('define-properties');
@@ -6898,7 +6078,6 @@ define(boundTrim, {
 module.exports = boundTrim;
 
 },{"./implementation":50,"./polyfill":52,"./shim":53,"define-properties":10,"function-bind":23}],52:[function(require,module,exports){
-'use strict';
 
 var implementation = require('./implementation');
 
@@ -6912,7 +6091,6 @@ module.exports = function getPolyfill() {
 };
 
 },{"./implementation":50}],53:[function(require,module,exports){
-'use strict';
 
 var define = require('define-properties');
 var getPolyfill = require('./polyfill');
@@ -7160,7 +6338,8 @@ module.exports = function () {
         for (var i = 0; i < buf.length; i++) {
             var c = typeof buf === 'string'
                 ? buf.charAt(i)
-                : String.fromCharCode(buf[i]);
+                : String.fromCharCode(buf[i])
+            ;
             if (c === '\n') flush();
             else line += c;
         }
@@ -7193,7 +6372,8 @@ var regexpTest = bind.call(Function.call, RegExp.prototype.test);
 var yamlIndicators = /\:|\-|\?/;
 var nextTick = typeof setImmediate !== 'undefined'
     ? setImmediate
-    : process.nextTick;
+    : process.nextTick
+;
 
 module.exports = Results;
 inherits(Results, EventEmitter);
@@ -7388,7 +6568,8 @@ module.exports = Test;
 
 var nextTick = typeof setImmediate !== 'undefined'
     ? setImmediate
-    : process.nextTick;
+    : process.nextTick
+;
 var safeSetTimeout = setTimeout;
 
 inherits(Test, EventEmitter);
@@ -7890,9 +7071,16 @@ var createResult = require('./lib/results');
 var through = require('through');
 
 var canEmitExit = typeof process !== 'undefined' && process
-    && typeof process.on === 'function' && process.browser !== true;
+    && typeof process.on === 'function' && process.browser !== true
+;
 var canExit = typeof process !== 'undefined' && process
-    && typeof process.exit === 'function';
+    && typeof process.exit === 'function'
+;
+
+var nextTick = typeof setImmediate !== 'undefined'
+    ? setImmediate
+    : process.nextTick
+;
 
 exports = module.exports = (function () {
     var harness;
@@ -8220,17 +7408,17 @@ var init = function init() {
   document.body.appendChild(container);
 };
 
-var setup = function setup() {
-  var html = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : DEFAULT_HTML;
+var setup = function setup(html) {
+  if (html === void 0) {
+    html = DEFAULT_HTML;
+  }
 
   var container = document.getElementById('domodule');
   container.innerHTML = html;
-
   return Countup.discover()[0];
 };
 
 init();
-
 test('Defaults', function (assert) {
   var instance = setup();
   assert.equal(instance.options.delay, 0, 'Delay should be 0');
@@ -8239,86 +7427,63 @@ test('Defaults', function (assert) {
   assert.equal(instance.options.template, '$D', 'Should have a sensible template');
   assert.end();
 });
-
 test('Required', function (assert) {
-  assert.throws(function () {
+  assert["throws"](function () {
     setup('<div data-module="Countup"></div>');
   }, /target is required as options for Countup, but is missing!/, 'Should throw if no target defined');
-
   assert.end();
 });
-
 test('Default', function (assert) {
   var instance = setup();
-
   assert.equal(instance.el.innerText, '0', 'Should start at 0');
   instance.start();
-
   setTimeout(function () {
     assert.notEqual(instance.el.innerText, '0', 'Should not be at start');
     assert.notEqual(instance.el.innerText, '20', 'Should not be end');
   }, 200);
-
   setTimeout(function () {
     assert.equal(instance.el.innerText, '20', 'Should be finished');
     assert.end();
   }, 750);
 });
-
 test('Different start', function (assert) {
   var instance = setup('<div data-module="Countup" data-module-target="20" data-module-start="50"></div>');
-
   assert.equal(instance.el.innerText, '50', 'Should start at 50');
   instance.start();
-
   setTimeout(function () {
     assert.notEqual(instance.el.innerText, '50', 'Should not be at start');
     assert.notEqual(instance.el.innerText, '20', 'Should not be end');
   }, 200);
-
   setTimeout(function () {
     assert.equal(instance.el.innerText, '20', 'Should be finished');
     assert.end();
   }, 750);
 });
-
 test('Different duration', function (assert) {
   var instance = setup('<div data-module="Countup" data-module-target="20" data-module-duration="100"></div>');
-
   assert.equal(instance.el.innerText, '0', 'Should start at 0');
   instance.start();
-
   setTimeout(function () {
     assert.equal(instance.el.innerText, '20', 'Should be at end already');
     assert.end();
   }, 200);
 });
-
 test('Different template', function (assert) {
   var instance = setup('<div data-module="Countup" data-module-target="20" data-module-template="$D%"></div>');
-
   assert.equal(instance.el.innerText, '0%', 'Should start at 0%');
   instance.start();
-
   setTimeout(function () {
     assert.equal(instance.el.innerText, '20%', 'Should be 20%');
     assert.end();
   }, 750);
 });
-
 test('Plays nice with Scroll Triggers', function (assert) {
   var instance = setup('<div data-module="Countup" data-module-target="20" data-scroll></div>');
-
   assert.equal(instance.el.innerText, '0', 'Should be 0');
-
   fire(instance.el, 'scrolltriggers:inView');
-
   setTimeout(function () {
     assert.equal(instance.el.innerText, '20', 'Should be 20');
     assert.end();
   }, 750);
 });
-
-}());
-
 //# sourceMappingURL=countup.test.dist.js.map
